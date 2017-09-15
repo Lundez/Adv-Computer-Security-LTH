@@ -17,18 +17,13 @@ UDP_DATA_BOB = (UDP_IP, UDP_PORT)
 UDP_DATA_ALICE = (UDP_IP_2, UDP_PORT)
 
 BUFF_SIZE = 1024
-#prime = 23
-#base = 5 prime & base removed
 im_the_sender = False
 
 input_queue = queue.Queue()
 
-# Darnit! We must change the diffie hellman! base&prime to be announced publicly!
-# Khan Academy has a good video on how it works!!
-
 
 def gen_primes(n):
-    """ Returns  a list of primes < n """
+    """ Returns  a list of primes < n"""
     sieve = [True] * n
     for i in range(3, int(n**0.5) + 1, 2):
         if sieve[i]:
@@ -71,6 +66,7 @@ def receive(sock, udp_data):
         message = sock.recv(BUFF_SIZE)
         if message is not None:
             input_queue.put(message)
+
         if input_queue.qsize() >= 3 and not im_the_sender:
             prime = from_byte(input_queue.get())        # int(input_queue.get().decode())
             base = from_byte(input_queue.get())         # int(input_queue.get().decode())
@@ -79,6 +75,7 @@ def receive(sock, udp_data):
             secret = random.randint(0, 10000)
             B = diffie_calc(secret, base, prime)
             sock.sendto(to_byte(B), udp_data)  # Need to exchange the base/prime too
+
             s = diffie_calc(secret, A, prime)  # s == IV if padded
             iv = create_iv(s)
             while True:
@@ -91,29 +88,6 @@ def receive(sock, udp_data):
                     msg = AES.cbc_decrypt(hmac_strip(message), KEY, iv)
                     print("Received: %s" % msg)
                     break
-
-        """
-        A = sock.recv(BUFF_SIZE)
-        if A is not None and im_the_sender:
-            input_queue.put(A)
-        elif A is not None:
-            secret = random.randint(0, 10000)
-            print(len(A))
-            B = diffie_calc(secret, base, prime)
-            sock.sendto(str(B).encode(), udp_data)             # Need to exchange the base/prime too
-            s = diffie_calc(secret, int(A.decode()), prime)    # s == IV if padded
-            iv = create_iv(s)
-            while True:
-                message = sock.recv(BUFF_SIZE)
-                if message is not None:
-                    if not hmac_compare(message, iv.encode()):
-                        print("Something went wrong with the message, HMAC doesnt work")
-                        break
-
-                    msg = AES.cbc_decrypt(hmac_strip(message), KEY, iv)
-                    print("Received: %s" % msg)
-                    break
-        """
 
 
 def to_byte(number):
@@ -133,9 +107,6 @@ def init_handshake(sock, udp_data):
     sock.sendto(to_byte(prime), udp_data)
     sock.sendto(to_byte(base), udp_data)
     sock.sendto(to_byte(A), udp_data)
-    #sock.sendto(str(prime).encode(), udp_data)      # Extract to be a "to binary" and then "from binary"
-    #sock.sendto(str(base).encode(), udp_data)
-    #sock.sendto(str(A).encode(), udp_data)
 
     while True:
         if not input_queue.empty():
@@ -159,8 +130,8 @@ def send_message(message, sock, udp_data):
 if __name__ == '__main__':
     user = sys.argv[1]
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)  # Internet, UDP
-    primes = gen_primes(1000)
-
+    primes = gen_primes(1000)                               # Proof of concept
+    print(len(primes))
     if user.lower() == "bob":
         UDP_DATA = UDP_DATA_BOB
         UDP_SEND = UDP_DATA_ALICE
