@@ -12,6 +12,7 @@ import hmac
 
 KEY = bytearray("0123456789".encode())
 
+
 def hmac_apply(cipher_text, iv):
     hmac_obj = hmac.new(KEY)
     hmac_obj.update(cipher_text + iv)

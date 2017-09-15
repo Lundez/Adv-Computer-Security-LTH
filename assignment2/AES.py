@@ -8,6 +8,7 @@ INTERRUPT = u'\u0001'
 BLOCK_SIZE = 16
 PAD = u'\u0000'
 
+
 def cbc_encrypt(message, key, iv):
     """ Encrypts a message in AES CBC mode with a given key & IV
     ACCEPTS: Three strings, the plaintext message, the key and the initializing vector
